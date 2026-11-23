@@ -16,9 +16,9 @@ pip install -r requirements.txt
 
 ## Sketches
 
-| Sketch | File | Command |
-|---|---|---|
-| 3D Polar Harmonic Lotus | `sketches/lotus_bloom.py` | `python sketches/lotus_bloom.py` |
+| Sketch | File | Video | Command |
+|---|---|---|---|
+| 3D Polar Harmonic Lotus | `sketches/lotus_bloom.py` | [Watch Short](https://youtube.com/shorts/7ZJ0sNEhubY) | `python sketches/lotus_bloom.py` |
 
 ### Options (`lotus_bloom.py`)
 
