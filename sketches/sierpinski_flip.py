@@ -1,5 +1,6 @@
 import argparse
 import math
+import os
 import numpy as np
 from PIL import Image
 
@@ -57,37 +58,36 @@ def main():
     p.add_argument("--level", type=int, default=5)
     p.add_argument("--size", type=int, default=1080)
     p.add_argument("--out", default="sierpinski_flip.png")
-    p.add_argument("--gif", action="store_true", help="export a level 0..5 + zoom gif")
+    p.add_argument("--gif", action="store_true", help="export a level 1..5 + zoom gif")
     args = p.parse_args()
+    level = max(1, min(6, args.level))
 
     if args.gif:
         sz = min(args.size, 640)
         frames = []
-        for lv in range(1, min(args.level, 5) + 1):
+        max_lv = min(level, 5)
+        for lv in range(1, max_lv + 1):
             cpx = max(3, int(round(729 / (3 ** lv))))
             im = render_carpet(lv, cell_px=cpx).resize((sz, sz), Image.Resampling.LANCZOS)
             frames.extend([im] * 6)
-        hi = render_carpet(min(args.level, 5), cell_px=9)
+        hi = render_carpet(max_lv, cell_px=9)
         w = hi.size[0]
-        # smooth zoom into fractal interior and back out
+        # smooth zoom into fractal interior and back out (zero jump at z=1.0)
         for k in range(24):
             u = 0.5 - 0.5 * math.cos(k / 23.0 * math.tau)
             z = 1.0 + 3.2 * u
             crop = w / z
-            cx, cy = w * 0.68, w * 0.68
-            box = (
-                max(0, cx - crop * 0.5),
-                max(0, cy - crop * 0.5),
-                min(w, cx + crop * 0.5),
-                min(w, cy + crop * 0.5),
-            )
+            half = crop * 0.5
+            cx = min(w - half, max(half, w * (0.50 + 0.18 * u)))
+            cy = min(w - half, max(half, w * (0.50 + 0.18 * u)))
+            box = (cx - half, cy - half, cx + half, cy + half)
             frames.append(hi.crop(box).resize((sz, sz), Image.Resampling.LANCZOS))
-        out_gif = args.out.rsplit(".", 1)[0] + ".gif"
+        out_gif = os.path.splitext(args.out)[0] + ".gif"
         frames[0].save(out_gif, save_all=True, append_images=frames[1:], duration=65, loop=0)
         print(f"saved {out_gif}")
     else:
-        cpx = 9 if args.level == 5 else max(3, int(round(1080 / (3 ** args.level))))
-        im = render_carpet(args.level, cell_px=cpx).resize((args.size, args.size), Image.Resampling.LANCZOS)
+        cpx = 9 if level == 5 else max(3, int(round(1080 / (3 ** level))))
+        im = render_carpet(level, cell_px=cpx).resize((args.size, args.size), Image.Resampling.LANCZOS)
         im.save(args.out)
         print(f"saved {args.out}")
 
